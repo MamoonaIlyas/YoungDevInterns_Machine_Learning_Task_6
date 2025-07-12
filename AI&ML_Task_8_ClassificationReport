@@ -1,0 +1,36 @@
+import pandas as pd
+from sklearn.model_selection import train_test_split
+from sklearn.linear_model import LogisticRegression
+from sklearn.preprocessing import LabelEncoder
+from sklearn.metrics import classification_report
+# Load dataset
+df = pd.read_csv(r'D:\studies\Mamoona\AI&ML_Intern\preprocessed_cereal.csv')
+# Create classification target: rating_class
+bins = [0, 40, 70, 100]
+labels = ['Low', 'Medium', 'High']
+df['rating_class'] = pd.cut(df['rating'], bins=bins, labels=labels)
+df.drop(columns='rating', inplace=True)# Drop original rating
+X = df.drop(columns='rating_class')# Features and target
+y = df['rating_class']
+le = LabelEncoder()# Encode target labels to integers
+y_encoded = le.fit_transform(y)  # Low=0, Medium=1, High=2.
+
+# Train-test split
+X_train, X_test, y_train, y_test = train_test_split(X, y_encoded, test_size=0.2, stratify=y_encoded, random_state=42)
+# Train Logistic Regression model
+model = LogisticRegression(max_iter=1000)
+model.fit(X_train, y_train)
+# Predict on test set
+y_pred = model.predict(X_test)
+# Define target class names according to LabelEncoder order
+target_names = ['High', 'Low', 'Medium']
+# Generate classification report with fixed labels
+report = classification_report(
+    y_test,
+    y_pred,
+    labels=[0, 1, 2],  # ensure all classes are considered even if missing in y_test
+    target_names=target_names,
+    zero_division=0
+)
+print("=== Classification Report ===")
+print(report)
